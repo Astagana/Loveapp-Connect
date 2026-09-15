@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoveConnect 💕 Selalu Terhubung dengan Sayangmu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- Latar belakang hati mengambang -->
+<div class="hearts-bg" id="heartsBg" aria-hidden="true"></div>
+
+<div id="toast" class="toast"></div>
+
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar" id="navbar" hidden>
+  <div class="nav-brand">💖 LoveConnect</div>
+  <div class="nav-links">
+    <a href="#/dashboard" data-route>Beranda</a>
+    <a href="#/map" data-route>Peta</a>
+    <a href="#/gallery" data-route>Galeri</a>
+    <a href="#/notes" data-route>Catatan Cinta</a>
+    <a href="#/profile" data-route>Profil</a>
+  </div>
+  <button class="btn-logout" id="logoutBtn">Keluar</button>
+</nav>
+
+<main id="app" class="app-container"></main>
+
+<!-- ================= TEMPLATES ================= -->
+
+<template id="tpl-auth">
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-logo">💞</div>
+      <h1 class="brand-title">LoveConnect</h1>
+      <p class="brand-sub">Ruang kecil untuk cinta besar kalian berdua</p>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="login">Masuk</button>
+        <button class="tab-btn" data-tab="register">Daftar</button>
+      </div>
+
+      <form id="loginForm" class="auth-form">
+        <input type="email" name="email" placeholder="Email" required autocomplete="email">
+        <input type="password" name="password" placeholder="Kata sandi" required autocomplete="current-password">
+        <button type="submit" class="btn-primary">Masuk 💗</button>
+        <p class="form-error" data-error></p>
+      </form>
+
+      <form id="registerForm" class="auth-form hidden">
+        <input type="text" name="name" placeholder="Nama kamu" required>
+        <input type="email" name="email" placeholder="Email" required autocomplete="email">
+        <input type="password" name="password" placeholder="Kata sandi (min. 6 karakter)" required autocomplete="new-password">
+        <button type="submit" class="btn-primary">Buat Akun 💌</button>
+        <p class="form-error" data-error></p>
+      </form>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-dashboard">
+  <div class="page fade-in">
+    <div class="hero-card">
+      <div class="hero-avatars">
+        <span class="avatar-circle" id="myAvatar">💖</span>
+        <span class="heart-pulse">💗</span>
+        <span class="avatar-circle" id="partnerAvatar">🤍</span>
+      </div>
+      <h2 id="heroTitle">Halo!</h2>
+      <p id="heroSubtitle" class="muted"></p>
+      <div id="counterBox" class="counter-box hidden">
+        <span class="counter-number" id="dayCounter">0</span>
+        <span class="counter-label">hari bersama</span>
+      </div>
+    </div>
+
+    <div id="noPartnerCard" class="card hidden">
+      <h3>Hubungkan dengan Pasangan 💍</h3>
+      <p class="muted">Kalian berdua perlu saling setuju untuk terhubung. Buat kode undangan, lalu minta pasanganmu memasukkannya.</p>
+      <div class="pair-actions">
+        <button id="generateCodeBtn" class="btn-primary">Buat Kode Undangan</button>
+        <div id="codeDisplay" class="code-display hidden"></div>
+      </div>
+      <div class="divider">atau</div>
+      <form id="acceptCodeForm" class="inline-form">
+        <input type="text" id="acceptCodeInput" placeholder="Masukkan kode dari pasanganmu" maxlength="6">
+        <button type="submit" class="btn-secondary">Gabung</button>
+      </form>
+      <p class="form-error" data-error></p>
+    </div>
+
+    <div id="quickActions" class="quick-actions hidden">
+      <button class="quick-btn" data-quick="miss_you">🥺<span>Kangen</span></button>
+      <button class="quick-btn" data-quick="love_you">💘<span>Cinta</span></button>
+      <button class="quick-btn" data-quick="good_morning">☀️<span>Pagi</span></button>
+      <button class="quick-btn" data-quick="good_night">🌙<span>Malam</span></button>
+    </div>
+
+    <div id="recentNotes" class="card hidden">
+      <h3>Pesan Terbaru 💌</h3>
+      <div id="recentNotesList" class="notes-list"></div>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-map">
+  <div class="page fade-in">
+    <div class="card">
+      <h2>📍 Peta Berdua</h2>
+      <p class="muted">Lokasi hanya terlihat jika <strong>kalian berdua</strong> menyalakan izin berbagi lokasi.</p>
+
+      <div class="consent-row">
+        <label class="switch">
+          <input type="checkbox" id="shareLocationToggle">
+          <span class="slider"></span>
+        </label>
+        <span id="shareLocationLabel">Bagikan lokasiku</span>
+      </div>
+
+      <div id="mapStatusBanner" class="status-banner"></div>
+
+      <div id="mapEl" class="map-box"></div>
+
+      <div id="distanceBox" class="distance-box hidden">
+        <span>💗 Jarak kalian: <strong id="distanceValue">-</strong> km</span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-gallery">
+  <div class="page fade-in">
+    <div class="card">
+      <h2>📸 Galeri Kenangan</h2>
+      <p class="muted">Jepret langsung atau pilih dari galeri untuk berbagi momen.</p>
+
+      <form id="uploadForm" class="upload-row">
+        <label class="upload-btn" for="cameraInput">📷 Jepret Foto
+          <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
+        </label>
+        <label class="upload-btn" for="galleryInput">🖼️ Pilih dari Galeri
+          <input type="file" id="galleryInput" accept="image/*" hidden>
+        </label>
+      </form>
+      <div id="uploadPreview" class="upload-preview hidden">
+        <img id="previewImg" alt="Pratinjau foto">
+        <input type="text" id="captionInput" placeholder="Tulis caption manis... (opsional)" maxlength="300">
+        <div class="preview-actions">
+          <button id="confirmUploadBtn" class="btn-primary">Kirim 💕</button>
+          <button id="cancelUploadBtn" class="btn-secondary">Batal</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="galleryGrid" class="gallery-grid"></div>
+  </div>
+</template>
+
+<template id="tpl-notes">
+  <div class="page fade-in">
+    <div class="card">
+      <h2>💌 Catatan Cinta</h2>
+      <form id="noteForm" class="inline-form">
+        <input type="text" id="noteInput" placeholder="Tulis sesuatu yang manis untuk pasanganmu..." maxlength="500">
+        <button type="submit" class="btn-primary">Kirim</button>
+      </form>
+      <div class="quick-actions">
+        <button class="quick-btn" data-quick="miss_you">🥺<span>Kangen</span></button>
+        <button class="quick-btn" data-quick="love_you">💘<span>Cinta</span></button>
+        <button class="quick-btn" data-quick="good_morning">☀️<span>Pagi</span></button>
+        <button class="quick-btn" data-quick="good_night">🌙<span>Malam</span></button>
+      </div>
+    </div>
+    <div id="allNotesList" class="notes-list card"></div>
+  </div>
+</template>
+
+<template id="tpl-profile">
+  <div class="page fade-in">
+    <div class="card">
+      <h2>👤 Profil Saya</h2>
+      <div class="avatar-picker" id="avatarPicker"></div>
+      <label class="field-label">Mood saat ini</label>
+      <input type="text" id="moodInput" maxlength="50" placeholder="Sedang merasa apa hari ini?">
+      <label class="field-label">Tanggal Jadian / Anniversary</label>
+      <input type="date" id="anniversaryInput">
+      <button id="saveProfileBtn" class="btn-primary">Simpan Perubahan</button>
+    </div>
+
+    <div class="card" id="partnerInfoCard">
+      <h2>💑 Pasangan</h2>
+      <div id="partnerInfoBody"></div>
+    </div>
+
+    <div class="card danger-card" id="unpairCard" hidden>
+      <h3>Putuskan Hubungan</h3>
+      <p class="muted">Ini akan menghapus koneksi dengan pasanganmu. Kamu bisa terhubung lagi kapan saja dengan kode baru.</p>
+      <button id="unpairBtn" class="btn-danger">Putuskan Hubungan</button>
+    </div>
+  </div>
+</template>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/js/hearts.js"></script>
+<script src="/js/core.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/dashboard.js"></script>
+<script src="/js/map.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/notes.js"></script>
+<script src="/js/profile.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>
