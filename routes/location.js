@@ -67,6 +67,9 @@ router.get('/status', requireAuth, (req, res) => {
 
   res.json(response);
 });
+function toRad(degrees) {
+  return degrees * (Math.PI / 180);
+}
 
 function haversineKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
