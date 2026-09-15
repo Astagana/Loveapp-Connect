@@ -3,6 +3,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
+const serverless = require("serverless-http");
 
 const authRoutes = require('./routes/auth');
 const pairRoutes = require('./routes/pair');
@@ -43,3 +44,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`💖 LoveConnect berjalan di http://localhost:${PORT}`);
 });
+
+module.exports.handler = serverless(app)
